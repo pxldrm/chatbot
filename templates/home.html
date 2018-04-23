@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  #################################################
+
+  Global Variables
+
+  #################################################
+ -->
+  <script>
+    var counter = 0;
+    var bot_response = false;
+    var bot_message;
+  </script>
+<!--
+  #################################################
+
+  Head
+
+  #################################################
+ -->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatBot Home</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+    integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <style>
+      div.msg_bbl {
+        background-color: #ddd;
+        padding: 5px 10px;
+        border-radius: 10px;
+        color: #555;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+<!--
+  #################################################
+
+  Body
+
+  #################################################
+ -->
+  <body>
+    <div class="text-center well">
+<!-- 
+  Chatterbot Banner
+ -->
+      <a 
+        target='_blank'
+        href='http://chatterbot.readthedocs.io/en/stable/'>
+        <img src="static/img/banner.png"
+        alt="image" 
+        style="width:750px;height:250px;"/>
+      </a>
+    </div>
+<!-- 
+  Instructions
+ -->
+    <div align="center">
+      <button data-toggle="collapse" data-target="#demo" align="center">VIEW INSTRUCTIONS</button>
+    </div>
+
+    <div id="demo" class="collapse" align="center">
+      <table>
+        <tr>
+          <td>
+            <strong>Generate a response from chatterbot:</strong>
+          </td>
+          <td>
+            <img src="static/img/chatterbot.png" alt="image" style="width:45px; height:45px;"/>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Listen to this message:</strong>
+          </td>
+          <td>
+            <img src="static/img/speech.png" alt="image" style="width:45px; height:45px;"/>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Check if response is from chatterbot:</strong>
+          </td>
+          <td>
+            <img src="static/img/ballot.png" alt="image" style="width:45px; height:45px;"/>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="container">
+<!-- 
+  Messages Column
+ -->
+      <div class="col-sm-8">
+        <form action="" method="POST">
+          <div class="no_message">
+            <h1 style='color: #ccc'>No message yet..</h1>
+            <div class="message_holder" style="height:400px;line-height:3em;overflow:scroll;padding:5px;"></div>
+          </div>
+        </form>
+      </div>
+<!-- 
+  Form Column
+ -->
+      <div class="col-sm-4">
+        <form action="" method="POST">
+          <b>Type your message below <span class="glyphicon glyphicon-arrow-down"></span></b>
+          <div class="clearfix" style="margin-top: 5px;"></div>
+
+          <input type="text" class="username form-control" placeholder="User Name">
+          <div style="padding-top: 5px;"></div>
+
+          <input type="text" class="message form-control" placeholder="Messages">
+          <div style="padding-top: 5px;"></div>
+
+          <button type="submit" class="btn btn-success btn-block"><span class="glyphicon glyphicon-send"></span>Send</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script>
+      var socket = io.connect( 'http://' + document.domain + ':' + location.port )
+      // broadcast a message
+      socket.on( 'connect', function() {
+        socket.emit( 'response', {
+          data: 'User Connected'
+        } )
+        var form = $( 'form' ).on( 'submit', function( e ) {
+          e.preventDefault()
+          let user_name = $( 'input.username' ).val()
+          let user_input = $( 'input.message' ).val()
+
+          if(bot_response){
+            user_input = document.getElementById('message_' + bot_message).innerHTML;
+          }
+
+          socket.emit( 'response', {
+            user_name : user_name,
+            message : user_input,
+            'bot' : bot_response
+          } )
+          // empty the input field
+          $( 'input.message' ).val( '' ).focus()
+          bot_response = false
+        } )
+      } )
+
+      // capture message
+      socket.on( 'my response', function( msg ) {
+        console.log( msg )
+        if( typeof msg.user_name !== 'undefined' ) {
+          counter++;
+          $( 'h1' ).remove()
+          $( 'div.message_holder' ).prepend( '<table>  <tr>    <td><div class="msg_bbl"><b style="color: #000">'+msg.user_name+'</b> <span id=counter>'+msg.message+ '</span></div></td>    <td><span title="Generate a response from chatterbot."><button type="submit" id="bot_button" style="border: solid 1px #FFF; border-radius: 50%"><img src="static/img/chatterbot.png" alt="image" style="width:45px; height:45px;"/></button></span> <span title="Listen to this message."><button type="button" id="speech_button" style="border: solid 1px #FFF; border-radius: 50%"><img src="static/img/speech.png" alt="image" style="width:45px; height:45px;"/></button></span> <span title="Reveal if this message is from chatterbot."><button type="button" id="ballot_button" style="border: solid 1px #FFF; border-radius: 50%"><img src="static/img/ballot.png" alt="image" style="width:45px; height:45px;"/></button></span></td>  </tr></table>' )
+          document.getElementById('counter').id = 'message_' + counter
+          document.getElementById('bot_button').id = 'button_' + counter
+          document.getElementById('button_' + counter).className = msg['bot']
+          document.getElementById('speech_button').id = 'speech_' + counter
+          document.getElementById('ballot_button').id = 'ballot_' + counter
+          document.getElementById('button_' + counter).onclick = function() {
+            bot_response = true;
+            var arr = this.id.split("_");
+            bot_message = arr[arr.length - 1];
+          };
+          document.getElementById('speech_' + counter).onclick = function() {
+            var arr = this.id.split("_");
+            speech_message = arr[arr.length - 1];
+            var msg = new SpeechSynthesisUtterance(document.getElementById('message_' + speech_message).innerHTML);
+            window.speechSynthesis.speak(msg);
+          };
+          document.getElementById('ballot_' + counter).onclick = function() {
+            var arr = this.id.split("_");
+            ballot_message = arr[arr.length - 1];
+            var check_bot = document.getElementById('button_' + ballot_message).className;
+            if (check_bot == 'true')
+              alert('This message was sent from chatterbot!');
+            else
+              alert('This message was sent from a human!');
+          };
+        }
+      } )
+    </script>
+  </body>
+</html>
